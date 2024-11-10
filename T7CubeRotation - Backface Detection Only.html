@@ -55,8 +55,8 @@ var degrees = 0;
 var paused = false;
 var solid = false;
 
-var numPoints = 32;
-var numFaces = 24;
+var numPoints = 40;
+var numFaces = 30;
 
 // 3D World coordinate points
 //TODO: Build a face on the robot... That'll be difficult, probably
@@ -100,7 +100,17 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [100.0, -350.0, 25.0, 1.0],
                         [200.0, -350.0, 25.0, 1.0],
                         [100.0, -150.0, 25.0, 1.0],
-                        [200.0, -150.0, 25.0, 1.0], ];
+                        [200.0, -150.0, 25.0, 1.0], 
+                      
+                        //Points for a rectangular prism that represents the robot's left leg
+                        [-100.0, -500.0, 150.0, 1.0],
+                        [0.0, -500.0, 150.0, 1.0],
+                        [-100.0, -350.0, 150.0, 1.0],
+                        [0.0, -350.0, 150.0, 1.0],
+                        [-100.0, -500.0, 25.0, 1.0],
+                        [0.0, -500.0, 25.0, 1.0],
+                        [-100.0, -350.0, 25.0, 1.0],
+                        [0.0, -350.0, 25.0, 1.0]];
 
 //We just need the one faces vector since we're only doing cubes
 var faces = [ //0-7
@@ -127,13 +137,21 @@ var faces = [ //0-7
               [18, 19, 23, 22],
               [17, 16, 20, 21],
             
-              //24-32
+              //24-31
               [24, 25, 27, 26],
               [29, 28, 30, 31],
               [28, 24, 26, 30],
               [25, 29, 31, 27],
               [26, 27, 31, 30],
-              [25, 24, 28, 29]  ];
+              [25, 24, 28, 29],
+              
+              //32-39
+              [32, 33, 35, 34],
+              [37, 36, 38, 39],
+              [36, 32, 34, 38],
+              [33, 37, 39, 35],
+              [34, 35, 39, 38],
+              [33, 32, 36, 37]];
 
 window.onload = init;
 
