@@ -120,7 +120,7 @@ function render()
    p0 = VectorMultiply3D(McameraTransform, p0);
    var pref = [0.0, 0.0, 0.0, 1.0];
 
-   var pview = [100.0, 100.0, -400.0, 1.0];    //Vp
+   var pview = [100.0, 100.0, -400.0, 1.0];    //View point (where the camera is); Idk if z point changes anything though
    var zvp = -400;
 
    var Mwcvc = getWorldToViewingMatrix3D(p0, pref);
@@ -151,6 +151,13 @@ function render()
 
      // Display face (if it is visible)
      if (!solid || visibleFace(pt1, pt2, pt3, pt4))
+     /*TODO: We're going to have to add to this logic or change visible face.
+    Likely the new logic would look like:
+    if (!solid || (visibleFace(pt1, pt2, pt3, pt4) && zValue>lastShapeZVal) {
+      write code here
+    }
+      
+    BUT that won't work because this for statement is for the faces. Hm.*/
      {      
        vertices = vertices.concat( drawLine(1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 2) );
        vertices = vertices.concat( drawLine(1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 2) );
