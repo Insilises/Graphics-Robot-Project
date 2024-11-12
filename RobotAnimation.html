@@ -56,13 +56,14 @@ var paused = false;
 var solid = false;
 
 //If I have everything as prisms in their own, separate matrix, this could change. We could use a constant set of numbers.
-var numPoints = 80;
-var numFaces = 60;
+var numPoints = 8;
+var numFaces = 6;
 
 // 3D World coordinate points
 //TODO: Build a face on the robot... That'll be difficult, probably
 //NOTE: for each cube you add here, adjust numPoints, numFaces, and faces variables.
-var originalPoints = [  //Points for a cube that represents the robot's head
+/*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
+var roboTorsoHead = [  //Points for a cube that represents the robot's head
                         //Each cube should follow this same order, just to keep things simple.
                         [-150.0, -150.0, 250.0, 1.0], //bottom left, furthest away
                         [150.0, -150.0, 250.0, 1.0], //Bottom right, furthest away
@@ -82,57 +83,7 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [100.0, -350.0, -25.0, 1.0],
                         [-100.0,-150.0, -25.0, 1.0],
                         [100.0, -150.0, -25.0, 1.0],
-                      
-                        //Points for a rectangular prism that represents the robot's left arm
-                        [-200.0, -350.0, 150.0, 1.0],
-                        [-100.0, -350.0, 150.0, 1.0],
-                        [-200.0, -150.0, 150.0, 1.0],
-                        [-100.0, -150.0, 150.0, 1.0],
-                        [-200.0, -350.0, 25.0, 1.0],
-                        [-100.0, -350.0, 25.0, 1.0],
-                        [-200.0, -150.0, 25.0, 1.0],
-                        [-100.0, -150.0, 25.0, 1.0],  
-                      
-                        //Points for a rectangular prism that represents the robot's right arm
-                        [100.0, -350.0, 150.0, 1.0],
-                        [200.0, -350.0, 150.0, 1.0],
-                        [100.0, -150.0, 150.0, 1.0],
-                        [200.0, -150.0, 150.0, 1.0],
-                        [100.0, -350.0, 25.0, 1.0],
-                        [200.0, -350.0, 25.0, 1.0],
-                        [100.0, -150.0, 25.0, 1.0],
-                        [200.0, -150.0, 25.0, 1.0], 
-                      
-                        //Points for a rectangular prism that represents the robot's left leg
-                        [-100.0, -500.0, 150.0, 1.0],
-                        [0.0, -500.0, 150.0, 1.0],
-                        [-100.0, -350.0, 150.0, 1.0],
-                        [0.0, -350.0, 150.0, 1.0],
-                        [-100.0, -500.0, 25.0, 1.0],
-                        [0.0, -500.0, 25.0, 1.0],
-                        [-100.0, -350.0, 25.0, 1.0],
-                        [0.0, -350.0, 25.0, 1.0],
 
-                        //Points for a rectangular prism that represents the robot's left leg
-                        [0.0, -500.0, 150.0, 1.0],
-                        [100.0, -500.0, 150.0, 1.0],
-                        [0.0, -350.0, 150.0, 1.0],
-                        [100.0, -350.0, 150.0, 1.0],
-                        [0.0, -500.0, 25.0, 1.0],
-                        [100.0, -500.0, 25.0, 1.0],
-                        [0.0, -350.0, 25.0, 1.0],
-                        [100.0, -350.0, 25.0, 1.0],
-                        
-                        //Points for a cube that represents the box the robot will pick up
-                        [-100.0, -500.0, -50.0, 1.0],
-                        [100.0, -500.0, -50.0, 1.0],
-                        [-100.0, -350.0, -50.0, 1.0],
-                        [100.0, -350.0, -50.0, 1.0],
-                        [-100.0, -500.0, -150.0, 1.0],
-                        [100.0, -500.0, -150.0, 1.0],
-                        [-100.0,-350.0, -150.0, 1.0],
-                        [100.0, -350.0, -150.0, 1.0],
-                      
                         //Points for a prism that represents the robot's mouth
                         /*Copy pasted from head; Maybe we don't need the back face since it'll never be drawn *shrugs*
                         TODO: Work this out bc... Huh? Maybe we do need all of these points. Otherwise, things get confusing.
@@ -166,89 +117,68 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [75.0, 0.0, -51.0, 1.0],
                         [25.0, 0.0, -51.0, 1.0],
                         [75.0, 50.0, -51.0, 1.0],
-                        [25.0, 50.0, -51.0, 1.0],
-                        ];
+                        [25.0, 50.0, -51.0, 1.0] ];
 
-//We just need the one faces vector since we're only doing cubes
-var faces = [ //0-7
+//The robot's arms will move the same as each other, lowering as it picks up the box.
+var roboArms = [        //Points for a rectangular prism that represents the robot's left arm
+                        [-200.0, -350.0, 150.0, 1.0],
+                        [-100.0, -350.0, 150.0, 1.0],
+                        [-200.0, -150.0, 150.0, 1.0],
+                        [-100.0, -150.0, 150.0, 1.0],
+                        [-200.0, -350.0, 25.0, 1.0],
+                        [-100.0, -350.0, 25.0, 1.0],
+                        [-200.0, -150.0, 25.0, 1.0],
+                        [-100.0, -150.0, 25.0, 1.0],  
+                      
+                        //Points for a rectangular prism that represents the robot's right arm
+                        [100.0, -350.0, 150.0, 1.0],
+                        [200.0, -350.0, 150.0, 1.0],
+                        [100.0, -150.0, 150.0, 1.0],
+                        [200.0, -150.0, 150.0, 1.0],
+                        [100.0, -350.0, 25.0, 1.0],
+                        [200.0, -350.0, 25.0, 1.0],
+                        [100.0, -150.0, 25.0, 1.0],
+                        [200.0, -150.0, 25.0, 1.0]  ];
+//The robot's legs won't move at all.
+var roboLegs = [
+                        //Points for a rectangular prism that represents the robot's left leg
+                        [-100.0, -500.0, 150.0, 1.0],
+                        [0.0, -500.0, 150.0, 1.0],
+                        [-100.0, -350.0, 150.0, 1.0],
+                        [0.0, -350.0, 150.0, 1.0],
+                        [-100.0, -500.0, 25.0, 1.0],
+                        [0.0, -500.0, 25.0, 1.0],
+                        [-100.0, -350.0, 25.0, 1.0],
+                        [0.0, -350.0, 25.0, 1.0],
+
+                        //Points for a rectangular prism that represents the robot's left leg
+                        [0.0, -500.0, 150.0, 1.0],
+                        [100.0, -500.0, 150.0, 1.0],
+                        [0.0, -350.0, 150.0, 1.0],
+                        [100.0, -350.0, 150.0, 1.0],
+                        [0.0, -500.0, 25.0, 1.0],
+                        [100.0, -500.0, 25.0, 1.0],
+                        [0.0, -350.0, 25.0, 1.0],
+                        [100.0, -350.0, 25.0, 1.0] ];
+                        
+var boxPoints = [//Points for a cube that represents the box the robot will pick up
+                        [-100.0, -500.0, -50.0, 1.0],
+                        [100.0, -500.0, -50.0, 1.0],
+                        [-100.0, -350.0, -50.0, 1.0],
+                        [100.0, -350.0, -50.0, 1.0],
+                        [-100.0, -500.0, -150.0, 1.0],
+                        [100.0, -500.0, -150.0, 1.0],
+                        [-100.0,-350.0, -150.0, 1.0],
+                        [100.0, -350.0, -150.0, 1.0]  ];
+
+//We just need the one faces vector since we're only doing cubes and prisms.
+var faces = [
               [0, 1, 3, 2],
               [5, 4, 6, 7],
               [4, 0, 2, 6],
               [1, 5, 7, 3],
               [2, 3, 7, 6],
-              [1, 0, 4, 5],
-
-              //8-15
-              [8, 9, 11, 10],
-              [13, 12, 14, 15],
-              [12, 8, 10, 14],
-              [9, 13, 15, 11],
-              [10, 11, 15, 14],
-              [9, 8, 12, 13],
-
-              //16-23
-              [16, 17, 19, 18],
-              [21, 20, 22, 23],
-              [20, 16, 18, 22],
-              [17, 21, 23, 19],
-              [18, 19, 23, 22],
-              [17, 16, 20, 21],
-            
-              //24-31
-              [24, 25, 27, 26],
-              [29, 28, 30, 31],
-              [28, 24, 26, 30],
-              [25, 29, 31, 27],
-              [26, 27, 31, 30],
-              [25, 24, 28, 29],
-              
-              //32-39
-              [32, 33, 35, 34],
-              [37, 36, 38, 39],
-              [36, 32, 34, 38],
-              [33, 37, 39, 35],
-              [34, 35, 39, 38],
-              [33, 32, 36, 37],
-            
-              //40-47
-              [40, 41, 43, 42],
-              [45, 44, 46, 47],
-              [44, 40, 42, 46],
-              [41, 45, 47, 43],
-              [42, 43, 47, 46],
-              [41, 40, 44, 45],
-
-              //48-55
-              [48, 49, 51, 50],
-              [53, 52, 54, 55],
-              [52, 48, 50, 54],
-              [49, 53, 55, 51],
-              [50, 51, 55, 54],
-              [49, 48, 52, 53],  
-            
-              //56-63
-              [60, 57, 59, 58],
-              [61, 60, 62, 63],
-              [60, 56, 58, 62],
-              [57, 61, 63, 59],
-              [58, 59, 63, 62],
-              [57, 56, 60, 61],
-            
-              //64-71
-              [64, 65, 67, 66],
-              [69, 68, 70, 71],
-              [68, 64, 66, 70],
-              [65, 69, 71, 67],
-              [66, 67, 71, 70],
-              [65, 64, 68, 69],
-
-              //72-79
-              [72, 73, 75, 74],
-              [77, 76, 78, 79],
-              [76, 72, 74, 78],
-              [73, 77, 79, 75],
-              [74, 75, 79, 78],
-              [73, 72, 76, 77]];
+              [1, 0, 4, 5] ];
 
 window.onload = init;
 
@@ -295,7 +225,8 @@ function render()
    var projectedPoints = [];
    for (var i=0; i<numPoints; i++)
    {
-     projectedPoints[i] = VectorMultiply3D(Mfinal, originalPoints[i]);
+    //Here's where originalPoints come in. This may have to be changed?
+     projectedPoints[i] = VectorMultiply3D(Mfinal, roboTorsoHead[i]);
      for (var j=0; j<=3; j++)
      {
        if (projectedPoints[i][3] != 0)
@@ -304,8 +235,11 @@ function render()
        }
      }
    }
-   
    vertices = [];
+
+
+
+   /*
    for (var i=0; i<numFaces; i++)
    {
      var pt1 = projectedPoints[faces[i][0]];
@@ -322,14 +256,14 @@ function render()
     }
       
     BUT that won't work because this for statement is for the faces. Hm. 
-    Maybe write another statement since we need to go point by point*/
+    Maybe write another statement since we need to go point by point
      {      
        vertices = vertices.concat( drawLine(1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 2) );
        vertices = vertices.concat( drawLine(1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 2) );
        vertices = vertices.concat( drawLine(1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 2) );
        vertices = vertices.concat( drawLine(1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 2) );
      }
-   }
+   }*/
 
    for (var i=0; i<vertices.length; i++)
    {
