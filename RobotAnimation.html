@@ -337,13 +337,13 @@ window.onload = init;
    var McameraTransform = Midentity;
 
    Mtransform = MatrixMultiply3D(t1, Mtransform);
-   Mtransform = MatrixMultiply3D(MrotationY, Mtransform)
+   Mtransform = MatrixMultiply3D(MrotationX, Mtransform)
    Mtransform = MatrixMultiply3D(t2, Mtransform);
    //TODO: The top half is going in circles. Not what we want, but we're closer.
    
    var transformedPoints = [];
    for (var i=0; i<originalPoints.length; i++) {
-    if (i <= 56) {
+    if (i < 56) {
       transformedPoints[i] = VectorMultiply3D(Mtransform, originalPoints[i]);
     }
     else {
@@ -442,11 +442,14 @@ window.onload = init;
                     0.001*pt2[0]/pt2[3], 0.001*pt2[1]/pt2[3],
                     0.001*pt3[0]/pt3[3], 0.001*pt3[1]/pt3[3],
                     0.001*pt4[0]/pt4[3], 0.001*pt4[1]/pt4[3] ];
-
+      // \/\/Get rid of this for transparency \/\/
        // Draw blank face
+       if (solid) {
        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
        gl.uniform4f(colorUniformLocation, 1.0, 1.0, 1.0, 1.0);
        gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length/2);
+       }
+       
 
        // Draw outline of face
        var vertices = [];
