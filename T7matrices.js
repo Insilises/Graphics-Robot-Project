@@ -135,7 +135,17 @@ function getParallelProjectionMatrix(VP, zvp)
             [0, 0, 0, 1]  ]; 
 }
 
-function visibleFace(p1, p2, p3, p4) {
+function getPerspectiveProjectionMatrix(prp, zvp)
+{
+  return [  [prp[2]-zvp, 0, -1*prp[0], prp[0]*prp[2] ],
+            [0, prp[2]-zvp, -1*prp[1], prp[1]*prp[2] ],
+            [0, 0, 1, 0],
+            [0, 0, -1, prp[2]]  ]; 
+}
+
+
+function visibleFace(p1, p2, p3, p4)
+{
   var x1 = p1[0];
   var y1 = p1[1];
   var z1 = p1[2];

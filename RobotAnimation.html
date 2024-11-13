@@ -50,17 +50,16 @@ function keycheck(e) {
 var canvas;
 var gl;
 var colorUniformLocation;
+
 var offset = 0;
 var degrees = 0;
-var paused = false;
-var solid = false;
 
-//If I have everything as prisms in their own, separate matrix, this could change. We could use a constant set of numbers.
-var numPoints = 8;
-var numFaces = 6;
+var paused = false;
+var solid = true;
+var useParallelProjection = true;
 
 // 3D World coordinate points
-//TODO: Build a face on the robot... That'll be difficult, probably
+
 //NOTE: for each cube you add here, adjust numPoints, numFaces, and faces variables.
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
 var roboHead = [  //Points for a cube that represents the robot's head
@@ -187,7 +186,11 @@ window.onload = init;
 
 function render()
 {
-  
+     //TODO: Add all other vectors to vertices. Remember, they're all separate due to the animations.
+   
+   
+   //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
+   //have to worry about fill algorithms.
    if (!paused)
    {
      offset+=2;
@@ -202,94 +205,147 @@ function render()
      degrees = 0;
    }
    var radians = degrees * (Math.PI / 180.0);
-   
-  
 
-   /*The way to do the animations would be to have some kind of boolean that would be set true when the button is pressed
-   but this value would be set false when the animation is over (perhaps when the box is in a certain spot?)*/
+   // Determine transformations
+   var Midentity = [ [1, 0, 0, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1] ];
+   var Mtranslate = [ [1, 0, 0, 0],
+                      [0, 1, 0, 2.0*offset],
+                      [0, 0, 1, -2.0*offset],
+                      [0, 0, 0, 1]  ];
+   var MrotationZ = [ [Math.cos(radians), -1.0*Math.sin(radians), 0, 0],
+                      [Math.sin(radians), Math.cos(radians), 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 0, 0, 1]  ];
+   var MrotationY = [ [Math.cos(radians), 0, Math.sin(radians), 0],
+                      [0, 1, 0, 0], 
+                      [-1.0*Math.sin(radians), 0, Math.cos(radians), 0],
+                      [0, 0, 0, 1]  ];
+   var MrotationX = [ [1, 0, 0, 0],
+                      [0, Math.cos(radians), -1.0*Math.sin(radians), 0],
+                      [0, Math.sin(radians), Math.cos(radians), 0],
+                      [0, 0, 0, 1]  ];
+   var Mscaling = [ [offset/100.0, 0, 0, 0],
+                    [0, offset/100.0, 0, 0],
+                    [0, 0, offset/100.0, 0],
+                    [0, 0, 0, 1] ];
 
-   // Transformation Matrix for camera
-   var Mtransform = RotationYMatrix3D(degrees);
-   var McameraTransform = IdentityMatrix3D();
-
-   //TODO: Do transformations of matrices here.
+   // Transformation Matrix
+   var Mtransform = MrotationY;
+   var McameraTransform = Midentity;
 
    // View-plane normal vector, N, is P0 - Pref
    var p0 = [0.0, -100.0, 500.0, 1.0];
    p0 = VectorMultiply3D(McameraTransform, p0);
    var pref = [0.0, 0.0, 0.0, 1.0];
 
-   var pview = [100.0, 100.0, -400.0, 1.0];    //View point (where the camera is); Idk if z point changes anything though
-   var zvp = -400.0;
+   var pview = [100.0, 100.0, -400.0, 1.0];
+   var prp = [100.0, 100.0, 400.0, 1.0];
+   var zvp = -400;
 
    var Mwcvc = getWorldToViewingMatrix3D(p0, pref);
-   var Mparallel = getParallelProjectionMatrix(pview, zvp);
-   var Mproject = MatrixMultiply3D(Mparallel, Mwcvc);
+
+   // Parallel Projection
+   var p1 = VectorMultiply3D(Mwcvc, p0);
+   var p2 = VectorMultiply3D(Mwcvc, pview);
+   var VP = [];
+   for (var i=0; i<4; i++)
+   {
+     VP[i] = p2[i] - p1[i];
+   }
+   var Mparallel = getParallelProjectionMatrix(VP, zvp);
+
+   // Perspective Projection
+   Mperspective = getPerspectiveProjectionMatrix(prp, zvp);
+
+   if (useParallelProjection)
+   {
+     var Mproject = MatrixMultiply3D(Mparallel, Mwcvc);
+   }
+   else
+   {
+     var Mproject = MatrixMultiply3D(Mperspective, Mwcvc);
+   }
+
+   // Combine projection and transformation matrix
    var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
 
-   currentCameraZ = Mwcvc[2];
-   
-   //Initialize all values (for each X,Y position) to camera position and to white.
-  for (i=0; i<1000; i++) { //For every X value
-    zBufferDepth[i] = [];
-    zBufferColor[i] = [];
-    for (j=0; j<1000; j++) { //For every Y value
-      zBufferDepth[i][j] = [zvp];
-      zBufferColor[i][j] = [1.0, 1.0, 1.0, 1.0];
-    }
-  }
-
    var projectedHeadPoints = [];
-   for (var i=0; i<numPoints; i++) {
+   for (var i=0; i<roboHead.length; i++)
+   {
     projectedHeadPoints[i] = VectorMultiply3D(Mfinal, roboHead[i]);
-     for (var j=0; j<=3; j++) {
-       if (projectedHeadPoints[i][3] != 0) {
-        projectedHeadPoints[i][j] /= (1.0*projectedHeadPoints[i][3]);
+   }
+
+   // Sort faces according to depth
+   var depth = [];
+   var faceOrder = [];
+   for (var i=0; i<faces.length; i++)
+   {
+     var pt1 = projectedHeadPoints[faces[i][0]];
+     var pt2 = projectedHeadPoints[faces[i][1]];
+     var pt3 = projectedHeadPoints[faces[i][2]];
+     var pt4 = projectedHeadPoints[faces[i][3]];
+
+     depth[i] = Math.min(pt1[2], pt2[2], pt3[2], pt4[2]);
+     faceOrder[i] = i;
+   }
+   for (var i=faces.length-1; i>0; i--)
+   {
+     for (var j=0; j<i; j++)
+     {
+       if (depth[j] > depth[j+1])
+       {
+         var t = depth[j];
+         depth[j] = depth[j+1];
+         depth[j+1] = t;
+         t = faceOrder[j];
+         faceOrder[j] = faceOrder[j+1];
+         faceOrder[j+1] = t;
        }
      }
    }
-   
-   vertices = [];
-   polygonZ = zvp;
-   for (i=0; i<8; i++) {
-    temp = zBufferDepth[i];
-      if ( polygonZ < temp) {
-        polygonZ = temp;
-      }
-    }
 
-   for (var i=0; i<numFaces; i++) {
-      var pt1 = projectedHeadPoints[faces[i][0]];
-      var pt2 = projectedHeadPoints[faces[i][1]];
-      var pt3 = projectedHeadPoints[faces[i][2]];
-      var pt4 = projectedHeadPoints[faces[i][3]];
+   gl.clear(gl.COLOR_BUFFER_BIT);
+   for (var i=0; i<faces.length; i++)
+   {
+     var x = faceOrder[i];
+     var pt1 = projectedHeadPoints[faces[x][0]];
+     var pt2 = projectedHeadPoints[faces[x][1]];
+     var pt3 = projectedHeadPoints[faces[x][2]];
+     var pt4 = projectedHeadPoints[faces[x][3]];
 
-      
-      // Display face (if it is visible)
-      if (!solid || (visibleFace(pt1, pt2, pt3, pt4) && polygonZ > zBufferDepth[i])) {
-        vertices = vertices.concat( drawLine(1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 2) );
-        vertices = vertices.concat( drawLine(1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 2) );
-        vertices = vertices.concat( drawLine(1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 2) );
-        vertices = vertices.concat( drawLine(1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 2) );
+     // Display face (if it is visible)
+     if (!solid || visibleFace(pt1, pt2, pt3, pt4))
+     {
+       var vertices = [];
+       vertices = [ 0.001*pt1[0]/pt1[3], 0.001*pt1[1]/pt1[3],
+                    0.001*pt2[0]/pt2[3], 0.001*pt2[1]/pt2[3],
+                    0.001*pt3[0]/pt3[3], 0.001*pt3[1]/pt3[3],
+                    0.001*pt4[0]/pt4[3], 0.001*pt4[1]/pt4[3] ];
+
+       // Draw blank face
+       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+       gl.uniform4f(colorUniformLocation, 1.0, 1.0, 1.0, 1.0);
+       gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length/2);
+
+       // Draw outline of face
+       var vertices = [];
+       vertices = vertices.concat( drawLine(1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 2) );
+       vertices = vertices.concat( drawLine(1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 2) );
+       vertices = vertices.concat( drawLine(1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 2) );
+       vertices = vertices.concat( drawLine(1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 2) );
+       for (var z=0; z<vertices.length; z++)
+       {
+         vertices[z] /= 1000.0;
+       }
+
+       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+       gl.uniform4f(colorUniformLocation, 0.0, 0.0, 1.0, 1.0);
+       gl.drawArrays(gl.POINTS, 0, vertices.length/2);
      }
    }
-   //TODO: Add all other vectors to vertices. Remember, they're all separate due to the animations.
-   
-   
-   //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
-   //have to worry about fill algorithms.
-
-   
-
-   for (var i=0; i<vertices.length; i++)
-   {
-     vertices[i] = vertices[i]/1000.0;
-   }
-
-   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-   gl.clear(gl.COLOR_BUFFER_BIT);
-   gl.uniform4f(colorUniformLocation, 0.0, 0.0, 1.0, 1.0);
-   gl.drawArrays(gl.POINTS, 0, vertices.length/2);
 
    requestAnimFrame(render);
 }
