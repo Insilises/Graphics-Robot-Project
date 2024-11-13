@@ -1,0 +1,158 @@
+<html>
+<style type="text/css">
+  canvas { background: red; }
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPos;
+
+void main()
+{
+  gl_PointSize = 1.0;
+  gl_Position = vPos;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+   gl_FragColor = u_color;
+}
+</script>
+
+
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initshaders.js"></script>
+<script type="text/javascript" src="lines.js"></script>
+<script type="text/javascript" src="matrices.js"></script>
+
+
+<script>
+window.addEventListener("keydown", keycheck, false);
+
+function keycheck(e) {
+  // Toggle pause/unpause when the letter p is pressed
+  if (e.keyCode == "80") {
+    paused = !paused;
+  }
+}
+</script>
+
+
+<script type="text/javascript">
+var canvas;
+var gl;
+var colorUniformLocation;
+var offset = 0;
+var paused = false;
+
+window.onload = init;
+
+// Points used for object
+var p1 = [200.0, 200.0, 1.0];
+var p2 = [-200.0, 200.0, 1.0];
+var p3 = [-200.0, -200.0, 1.0];
+var p4 = [200.0, -200.0, 1.0];
+
+function render()
+{
+   // Only change offset if not paused
+   if (!paused)
+   {
+     // Change offset little by little to produce animation effect
+     offset = offset + 2;
+   }
+
+   // Compute degrees of rotation matrix based on offset
+   degrees = offset % 360;
+
+   // Need to convert degrees to radians
+   var radians = degrees * (Math.PI / 180.0);
+
+   // r, t1, t2 are 3x3 transformation matrices
+   var vertices = [];
+   var r = [ [Math.cos(radians), -1.0*Math.sin(radians), 0.0],
+             [Math.sin(radians), Math.cos(radians), 0.0],
+             [0.0, 0.0, 1.0] ];
+
+   var t1 = [ [1, 0, 0],
+              [0, 1, -300],
+              [0, 0, 1] ];
+
+   var t2 = [ [1, 0, 0],
+              [0, 1, 300],
+              [0, 0, 1] ];
+
+   // Default value of transformation matrix, m (identity matrix = no transformation)
+   var m = [ [1, 0, 0],
+             [0, 1, 0],
+             [0, 0, 1] ];
+
+   // Premultiply m by sequence of transformation matrices
+   m = MatrixMultiply(t1, m);
+   m = MatrixMultiply(r, m)
+   m = MatrixMultiply(t2, m);
+
+   // premultiply each point by transformation matrix m
+   var mp1 = VectorMultiply(m, p1);
+   var mp2 = VectorMultiply(m, p2);
+   var mp3 = VectorMultiply(m, p3);
+   var mp4 = VectorMultiply(m, p4);
+
+   // compute lines connecting vertices
+   vertices = drawLine(mp1[0], mp1[1], mp2[0], mp2[1], 2);
+   vertices = vertices.concat( drawLine(mp2[0], mp2[1], mp3[0], mp3[1], 2) );
+   vertices = vertices.concat( drawLine(mp3[0], mp3[1], mp4[0], mp4[1], 2) );
+   vertices = vertices.concat( drawLine(mp4[0], mp4[1], mp1[0], mp1[1], 2) );
+
+   // Convert to [-1, 1] coordinate system
+   for (var i=0; i<vertices.length; i++)
+   {
+     vertices[i] = vertices[i]/1000.0;
+   }
+
+   // Display data
+   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+   gl.clear(gl.COLOR_BUFFER_BIT);
+   gl.uniform4f(colorUniformLocation, 0.0, 0.0, 1.0, 1.0);
+   gl.drawArrays(gl.POINTS, 0, vertices.length/2);
+
+   requestAnimFrame(render);
+}
+
+
+
+function init() {
+   canvas = document.getElementById("gl-canvas");
+   gl = WebGLUtils.setupWebGL(canvas);
+   if (!gl) {
+      alert("WebGL isn't available");
+   }
+
+   var program = initShaders(gl, "vertex-shader", "fragment-shader");
+
+   var vPos = gl.getAttribLocation(program, "vPos");
+   colorUniformLocation = gl.getUniformLocation(program, "u_color");
+   var buffer = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+   gl.viewport(0, 0, canvas.width, canvas.height);
+   gl.clearColor(0.9, 0.9, 0.9, 1.0);
+   gl.clear(gl.COLOR_BUFFER_BIT);
+
+   gl.useProgram(program);
+   gl.enableVertexAttribArray(vPos);
+   gl.vertexAttribPointer(vPos, 2, gl.FLOAT, false, 0, 0);
+
+   render();
+}
+</script>
+
+<body>
+<canvas id="gl-canvas" width="500" height="500">
+   Oops... your browser doesn't support HTML5's Canvas elements!
+</canvas>
+</body>
+</html>
