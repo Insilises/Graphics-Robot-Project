@@ -279,17 +279,18 @@ window.onload = init;
    //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
    //have to worry about fill algorithms.
    function render() {
-
+    
    if (!paused)
    {
      offset+=2;
-     degrees+=2;
+     degrees-=2;
    }
+     
    if (offset > 500)
    {
      offset = 0;
    }
-   if (degrees > 360)
+   if (degrees < -45)
    {
      degrees = 0;
    }
@@ -350,6 +351,11 @@ window.onload = init;
       transformedPoints[i] = originalPoints[i];
      }
    }
+   /*
+   for (i=0; i<transformedPoints.length; i++) {
+    if ()
+    transformedPoints[i] = 
+   }*/
 
 
    // View-plane normal vector, N, is P0 - Pref
