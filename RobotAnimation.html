@@ -59,9 +59,9 @@ var solid = true;
 var useParallelProjection = true;
 
 // 3D World coordinate points
-
-//NOTE: for each cube you add here, adjust numPoints, numFaces, and faces variables.
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
+//TODO: Can I just multiply part of a matrix? Since it would be best to put all of this in one matrix, but we need things to move separately.
+//I'm sure there is. Like we can do originalPoints[0-7] or something. Or we could start at a certain spot since we know where everything's at.
 var originalPoints = [  //Points for a cube that represents the robot's head
                         //Each cube should follow this same order, just to keep things simple.
                         [-150.0, -150.0, 250.0, 1.0], //bottom left, furthest away
@@ -81,7 +81,6 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [-100.0, -350.0, -25.0, 1.0],
                         [100.0, -350.0, -25.0, 1.0],
                         [-100.0,-150.0, -25.0, 1.0],
-                        [100.0, -150.0, -25.0, 1.0],
                         [100.0, -150.0, -25.0, 1.0],
 
                         //Points for a rectangular prism that represents the robot's left arm
@@ -108,7 +107,6 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [-100.0, -500.0, 150.0, 1.0],
                         [0.0, -500.0, 150.0, 1.0],
                         [-100.0, -350.0, 150.0, 1.0],
-                        [0.0, -350.0, 150.0, 1.0],
                         [0.0, -350.0, 150.0, 1.0],
                         [-100.0, -500.0, 25.0, 1.0],
                         [0.0, -500.0, 25.0, 1.0],
@@ -158,6 +156,7 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                       [0.0, 0.0, -51.0, 1.0],
                       [-50.0, 50.0, -51.0, 1.0],
                       [0.0, 50.0, -51.0, 1.0],
+
                       //Points for a prism that represents the robot's right eye
                       [75.0, 0.0, -50.0, 1.0],
                       [25.0, 0.0, -50.0, 1.0],
