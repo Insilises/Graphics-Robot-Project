@@ -333,20 +333,18 @@ window.onload = init;
               [0, 0, 0, 1]];
 
    // Transformation Matrix
-   var Mtransform = MrotationY;
+   var Mtransform = Midentity;
    var McameraTransform = Midentity;
 
-   var m = [];
-
-   m = MatrixMultiply3D(t1, Midentity);
-   m = MatrixMultiply3D(MrotationY, m)
-   m = MatrixMultiply3D(t2, m);
+   Mtransform = MatrixMultiply3D(t1, Mtransform);
+   Mtransform = MatrixMultiply3D(MrotationY, Mtransform)
+   Mtransform = MatrixMultiply3D(t2, Mtransform);
    //TODO: The top half is going in circles. Not what we want, but we're closer.
    
    var transformedPoints = [];
    for (var i=0; i<originalPoints.length; i++) {
     if (i <= 56) {
-      transformedPoints[i] = VectorMultiply3D(m, originalPoints[i]);
+      transformedPoints[i] = VectorMultiply3D(Mtransform, originalPoints[i]);
     }
     else {
       transformedPoints[i] = originalPoints[i];
@@ -388,14 +386,14 @@ window.onload = init;
    }
 
    // Combine projection and transformation matrix
-   var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
+   //var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
 
    //TODO: Use this as a baseline for how we do the transformations; just remember we only want the transformations happening
    //To certain shapes
    var projectedPoints = [];
    for (var i=0; i<originalPoints.length; i++)
    {
-     projectedPoints[i] = VectorMultiply3D(Mfinal, transformedPoints[i]);
+     projectedPoints[i] = VectorMultiply3D(Mproject, transformedPoints[i]);
    }
 
    // Sort faces according to depth
