@@ -180,7 +180,8 @@ var faces = [  //0-7
               [2, 3, 7, 6],
               [1, 0, 4, 5]];
 
-var zBuffer = [];
+var zBufferDepth = [];
+var zBufferColor = [];
 
 window.onload = init;
 
@@ -230,8 +231,11 @@ function render()
    
    //Initialize all values (for each X,Y position) to camera position and to white.
   for (i=0; i<1000; i++) { //For every X value
+    zBufferDepth[i] = [];
+    zBufferColor[i] = [];
     for (j=0; j<1000; j++) { //For every Y value
-      zBuffer[i][j] = [zvp, 1.0, 1.0, 1.0, 1.0];
+      zBufferDepth[i][j] = [zvp];
+      zBufferColor[i][j] = [1.0, 1.0, 1.0, 1.0];
     }
   }
 
@@ -246,6 +250,13 @@ function render()
    }
    
    vertices = [];
+   polygonZ = zvp;
+   for (i=0; i<8; i++) {
+    temp = zBufferDepth[i];
+      if ( polygonZ < temp) {
+        polygonZ = temp;
+      }
+    }
 
    for (var i=0; i<numFaces; i++) {
       var pt1 = projectedHeadPoints[faces[i][0]];
@@ -253,8 +264,9 @@ function render()
       var pt3 = projectedHeadPoints[faces[i][2]];
       var pt4 = projectedHeadPoints[faces[i][3]];
 
+      
       // Display face (if it is visible)
-      if (!solid || visibleFace(pt1, pt2, pt3, pt4)) {
+      if (!solid || (visibleFace(pt1, pt2, pt3, pt4) && polygonZ > zBufferDepth[i])) {
         vertices = vertices.concat( drawLine(1.0*pt1[0]/pt1[3], 1.0*pt1[1]/pt1[3], 1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 2) );
         vertices = vertices.concat( drawLine(1.0*pt2[0]/pt2[3], 1.0*pt2[1]/pt2[3], 1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 2) );
         vertices = vertices.concat( drawLine(1.0*pt3[0]/pt3[3], 1.0*pt3[1]/pt3[3], 1.0*pt4[0]/pt4[3], 1.0*pt4[1]/pt4[3], 2) );
