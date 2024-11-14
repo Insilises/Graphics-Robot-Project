@@ -289,11 +289,9 @@ window.onload = init;
      offset+=2;
      degrees-=2;
      if (pickUpAnimation) {
-     roboOffset-=2;
-     roboArmDegrees+=2;
+     roboArmDegrees+=4;
      roboDegrees-=2;
    }
-  }
    if (roboOffset < -100) {
     roboOffset = 0;
    }
@@ -305,14 +303,18 @@ window.onload = init;
    {
      degrees = 0;
    }
-   if (roboArmDegrees > 45) {
-    roboArmDegrees = 0;
+   if (roboArmDegrees > 90) {
+    roboArmDegrees = 89;
+    pickUpAnimation = false;
    }
    if (roboDegrees < -15)
    {
      roboDegrees = -14;
      pickUpAnimation = false;
+     
    }
+  }
+//TODO: I think the arm animation is right, but I need to figure out how to get it to go the other way?
    
    var radians = degrees * (Math.PI / 180.0);
    var roboRadians = roboDegrees * (Math.PI / 180.0);
@@ -360,9 +362,9 @@ window.onload = init;
                         [0, 0, 1, 10*roboOffset],
                         [0, 0, 0, 1]  ];
 
-    var translationTorso = [[1, 0, 0, -100],
-                            [0, 1, 0, -350],
-                            [0, 0, 1, -25],
+    var translationTorso = [[1, 0, 0, 0],
+                            [0, 1, 0, -25],
+                            [0, 0, 1, -150],
                             [0, 0, 0, 1]  ];
 
   var roboRotationX = [  [1, 0, 0, 0],
@@ -371,8 +373,8 @@ window.onload = init;
                       [0, 0, 0, 1]  ];
 
   var roboArmRotationX = [  [1, 0, 0, 0],
-                      [0, Math.cos(roboArmDegrees), -1.0*Math.sin(roboArmDegrees), 0],
-                      [0, Math.sin(roboArmDegrees), Math.cos(roboArmDegrees), 0],
+                      [0, Math.cos(roboArmRadians), -1.0*Math.sin(roboArmRadians), 0],
+                      [0, Math.sin(roboArmRadians), Math.cos(roboArmRadians), 0],
                       [0, 0, 0, 1]  ];
   
   var roboArmTranslation1 = [[1, 0, 0, 0],
@@ -393,7 +395,7 @@ window.onload = init;
    Mtransform = MatrixMultiply3D(t1, Mtransform);
    Mtransform = MatrixMultiply3D(roboRotationX, Mtransform)
    Mtransform = MatrixMultiply3D(t2, Mtransform);
-   Mtransform = MatrixMultiply3D(roboTranslate, Mtransform);
+   Mtransform = MatrixMultiply3D(translationTorso, Mtransform);
    
    var transformedPoints = [];
    for (var i=0; i<originalPoints.length; i++) {
