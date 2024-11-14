@@ -303,8 +303,8 @@ window.onload = init;
    {
      degrees = 0;
    }
-   if (roboArmDegrees > 90) {
-    roboArmDegrees = 89;
+   if (roboArmDegrees > 180) {
+    roboArmDegrees = 179;
     pickUpAnimation = false;
    }
    if (roboDegrees < -15)
@@ -318,7 +318,7 @@ window.onload = init;
    
    var radians = degrees * (Math.PI / 180.0);
    var roboRadians = roboDegrees * (Math.PI / 180.0);
-   var roboArmRadians = roboDegrees * (Math.PI / 180.0);
+   var roboArmRadians = roboArmDegrees * (Math.PI / 180.0);
   
 
    // Determine transformations
