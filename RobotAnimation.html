@@ -53,15 +53,19 @@ var colorUniformLocation;
 
 var offset = 0;
 var degrees = 0;
+var roboDegrees = 0;
+var roboOffset = 0;
+var roboArmDegrees = 0;
 
 var paused = false;
 var solid = true;
 var useParallelProjection = true;
 
+var pickUpAnimation = true; //TODO: Set to false when done testing
+var dropAnimation = false;
+
 // 3D World coordinate points
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
-//TODO: Can I just multiply part of a matrix? Since it would be best to put all of this in one matrix, but we need things to move separately.
-//I'm sure there is. Like we can do originalPoints[0-7] or something. Or we could start at a certain spot since we know where everything's at.
 var originalPoints = [  //Points for a cube that represents the robot's head
                         //Each cube should follow this same order, just to keep things simple.
                         [-150.0, -150.0, 250.0, 1.0], //bottom left, furthest away
@@ -283,18 +287,32 @@ window.onload = init;
    if (!paused)
    {
      offset+=2;
-     degrees-=2;
+     degrees+=2;
+     if (pickUpAnimation) {
+     roboOffset-=2;
+     roboArmDegrees+=2;
+     roboDegrees-=2;
    }
-     
+  }
+   if (roboOffset < -100) {
+    roboOffset = 0;
+   }
    if (offset > 500)
    {
      offset = 0;
    }
-   if (degrees < -45)
+   if (degrees > 360)
    {
      degrees = 0;
    }
+   if (roboDegrees < -15)
+   {
+     roboDegrees = -14;
+     roboArmDegrees = 15;
+     pickUpAnimation = false;
+   }
    var radians = degrees * (Math.PI / 180.0);
+   var roboRadians = roboDegrees * (Math.PI / 180.0);
   
 
    // Determine transformations
@@ -333,14 +351,35 @@ window.onload = init;
               [0, 0, 1, 0],
               [0, 0, 0, 1]];
 
+    var roboTranslate = [  [1, 0, 0, 0],
+                        [0, 1, 0, roboOffset],
+                        [0, 0, 1, roboOffset],
+                        [0, 0, 0, 1]  ];
+
+    var translationTorso = [[1, 0, 0, -100],
+                            [0, 1, 0, -350],
+                            [0, 0, 1, -25],
+                            [0, 0, 0, 1]  ];
+
+  var roboRotationX = [  [1, 0, 0, 0],
+                      [0, Math.cos(roboRadians), -1.0*Math.sin(roboRadians), 0],
+                      [0, Math.sin(roboRadians), Math.cos(roboRadians), 0],
+                      [0, 0, 0, 1]  ];
+
+  var roboArmRotationX = [  [1, 0, 0, 0],
+                      [0, Math.cos(roboRadians), -1.0*Math.sin(roboRadians), 0],
+                      [0, Math.sin(roboRadians), Math.cos(roboRadians), 0],
+                      [0, 0, 0, 1]  ];
+
    // Transformation Matrix
    var Mtransform = Midentity;
-   var McameraTransform = Midentity;
-
+   var McameraTransform = MrotationY; //Use this to move the camera
+   //TODO: I'm on track with these transformations, but it's a little off. :/
+   //TODO: Oh my god what have I done
    Mtransform = MatrixMultiply3D(t1, Mtransform);
-   Mtransform = MatrixMultiply3D(MrotationX, Mtransform)
+   Mtransform = MatrixMultiply3D(roboRotationX, Mtransform)
    Mtransform = MatrixMultiply3D(t2, Mtransform);
-   //TODO: The top half is going in circles. Not what we want, but we're closer.
+   Mtransform = MatrixMultiply3D(roboTranslate, Mtransform);
    
    var transformedPoints = [];
    for (var i=0; i<originalPoints.length; i++) {
@@ -351,11 +390,12 @@ window.onload = init;
       transformedPoints[i] = originalPoints[i];
      }
    }
-   /*
-   for (i=0; i<transformedPoints.length; i++) {
-    if ()
-    transformedPoints[i] = 
-   }*/
+   for (var i=0; i<transformedPoints.length; i++) {
+      if (i>40 && i < 56)
+        transformedPoints[i] = VectorMultiply3D(roboRotationX, transformedPoints[i]);
+      else
+        transformedPoints[i] = transformedPoints[i];
+   }
 
 
    // View-plane normal vector, N, is P0 - Pref
@@ -392,7 +432,7 @@ window.onload = init;
    }
 
    // Combine projection and transformation matrix
-   //var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
+   var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
 
    //TODO: Use this as a baseline for how we do the transformations; just remember we only want the transformations happening
    //To certain shapes
