@@ -42,6 +42,14 @@ function keycheck(e) {
   if (e.keyCode == "83") {
     solid = !solid;
   }
+
+  if (e.keyCode == "66") {
+    pickUpAnimation = true;
+  }
+  
+  if (e.keyCode == "88") {
+    dropAnimation = true;
+  }
 }
 
 </script>
@@ -61,7 +69,7 @@ var paused = false;
 var solid = true;
 var useParallelProjection = true;
 
-var pickUpAnimation = true; //TODO: Set to false when done testing
+var pickUpAnimation = false; //TODO: Set to false when done testing
 var dropAnimation = false;
 
 // 3D World coordinate points
@@ -165,7 +173,7 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [-100.0, -500.0, -150.0, 1.0],
                         [100.0, -500.0, -150.0, 1.0],
                         [-100.0,-350.0, -150.0, 1.0],
-                        [100.0, -350.0, -150.0, 1.0],
+                        [100.0, -350.0, -150.0, 1.0]
                       
                       
                       ];
@@ -390,12 +398,12 @@ window.onload = init;
    // Transformation Matrix
    var Mtransform = Midentity;
    var McameraTransform = MrotationY; //Use this to move the camera
-
+  if (pickUpAnimation) {
    Mtransform = MatrixMultiply3D(t1, Mtransform);
    Mtransform = MatrixMultiply3D(roboRotationX, Mtransform)
    Mtransform = MatrixMultiply3D(t2, Mtransform);
    Mtransform = MatrixMultiply3D(translationTorso, Mtransform);
-   
+  }
    var transformedPoints = [];
    for (var i=0; i<originalPoints.length; i++) {
     if (i < 56) {
@@ -536,6 +544,14 @@ window.onload = init;
    requestAnimFrame(render);
 }
 
+function matrixTranspose(matrix) {
+  var matrixCopy = matrix;
+  for (i=0; i<4; i++) {
+    for (j=0; j<4; j++) {
+      matrix[i][j] = matrixCopy[j][i];
+    }
+  }
+}
 
 
 function init() {
