@@ -47,7 +47,7 @@ function keycheck(e) {
     pickUpAnimation = true;
   }
   
-  if (e.keyCode == "88") {
+  if (e.keyCode == "88" && boxPickedUp) {
     dropAnimation = true;
   }
 }
@@ -71,6 +71,7 @@ var useParallelProjection = true;
 
 var pickUpAnimation = false; //TODO: Set to false when done testing
 var dropAnimation = false;
+var boxPickedUp = false;
 
 // 3D World coordinate points
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
@@ -286,35 +287,54 @@ window.onload = init;
    //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
    //have to worry about fill algorithms.
    function render() {
-    
    if (!paused)
    {
      degrees-=2;
      if (pickUpAnimation) {
-     roboArmDegrees+=4;
-     roboDegrees-=2
-     offset+=2;
-   }
-   if (roboOffset < -100) {
+        roboArmDegrees+=4;
+        roboDegrees-=2;
+        offset+=2;
+        
+        if (roboArmDegrees > 180) {
+          roboArmDegrees = 179;
+          pickUpAnimation = false;
+          boxPickedUp = true;
+        }
+        if (roboDegrees < -15)
+        {
+          roboDegrees = -14;
+          pickUpAnimation = false;
+          boxPickedUp = true;
+        }
+      }
+      else if (dropAnimation) {
+        roboArmDegrees-=4;
+        roboDegrees+=2;
+        offset-=2;
+        if (roboArmDegrees < 180) {
+          roboArmDegrees = 0;
+          dropAnimation = false;
+          boxPickedUp = false;
+        }
+        if (roboDegrees < -15)
+        {
+          roboDegrees = 0;
+          dropAnimation = false;
+          boxPickedUp = false;
+        }
+      }
+
+   if (roboOffset < -100 || roboOffset > 100) {
     roboOffset = 0;
    }
-   if (offset > 25)
+   if (offset > 25 ||offset < -25)
    {
      offset = 0;
      pickUpAnimation = false;
    }
-   if (degrees < -360)
+   if (degrees < -360 || degrees > 360)
    {
      degrees = 0;
-   }
-   if (roboArmDegrees > 180) {
-    roboArmDegrees = 179;
-    pickUpAnimation = false;
-   }
-   if (roboDegrees < -15)
-   {
-     roboDegrees = -14;
-     pickUpAnimation = false;
    }
   }
    
