@@ -287,7 +287,7 @@ window.onload = init;
    if (!paused)
    {
      offset+=2;
-     degrees+=2;
+     degrees-=2;
      if (pickUpAnimation) {
      roboOffset-=2;
      roboArmDegrees+=2;
@@ -301,7 +301,7 @@ window.onload = init;
    {
      offset = 0;
    }
-   if (degrees > 360)
+   if (degrees < -360)
    {
      degrees = 0;
    }
@@ -391,7 +391,7 @@ window.onload = init;
      }
    }
    for (var i=0; i<transformedPoints.length; i++) {
-      if (i>40 && i < 56)
+      if (i>=40 && i < 56)
         transformedPoints[i] = VectorMultiply3D(roboRotationX, transformedPoints[i]);
       else
         transformedPoints[i] = transformedPoints[i];
@@ -399,7 +399,7 @@ window.onload = init;
 
 
    // View-plane normal vector, N, is P0 - Pref
-   var p0 = [0.0, -100.0, 500.0, 1.0];
+   var p0 = [-1000, -100.0, 500.0, 1.0];
    p0 = VectorMultiply3D(McameraTransform, p0);
    var pref = [0.0, 0.0, 0.0, 1.0];
 
