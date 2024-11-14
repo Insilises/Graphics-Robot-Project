@@ -88,10 +88,6 @@ var originalPoints = [  //Points for a cube that represents the robot's head
                         [100.0, -150.0, -25.0, 1.0],
 
                         //Points for a prism that represents the robot's mouth
-                      /*Copy pasted from head; Maybe we don't need the back face since it'll never be drawn *shrugs*
-                      TODO: Work this out bc... Huh? Maybe we do need all of these points. Otherwise, things get confusing.
-                      We can still divide these into their own matrices since each of these will do different things in the animation
-                      */
                      
                       [-50.0, -100.0, -50.0, 1.0],
                       [50.0, -100.0, -50.0, 1.0],
@@ -277,7 +273,6 @@ window.onload = init;
    var radians = degrees * (Math.PI / 180.0);
    */
 
-     //TODO: Add all other vectors to vertices. Remember, they're all separate due to the animations.
    
    
    //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
@@ -286,18 +281,19 @@ window.onload = init;
     
    if (!paused)
    {
-     offset+=2;
      degrees-=2;
      if (pickUpAnimation) {
      roboArmDegrees+=4;
-     roboDegrees-=2;
+     roboDegrees-=2
+     offset+=2;
    }
    if (roboOffset < -100) {
     roboOffset = 0;
    }
-   if (offset > 500)
+   if (offset > 25)
    {
      offset = 0;
+     pickUpAnimation = false;
    }
    if (degrees < -360)
    {
@@ -311,10 +307,8 @@ window.onload = init;
    {
      roboDegrees = -14;
      pickUpAnimation = false;
-     
    }
   }
-//TODO: I think the arm animation is right, but I need to figure out how to get it to go the other way?
    
    var radians = degrees * (Math.PI / 180.0);
    var roboRadians = roboDegrees * (Math.PI / 180.0);
@@ -386,6 +380,11 @@ window.onload = init;
                             [0, 1, 0, -100],
                             [0, 0, 1, -150],
                             [0, 0, 0, 1]  ];
+
+    var boxTranslateY = [[1,0,0,0],
+                          [0,1,0, 10* offset],
+                          [0,0,1,0],
+                          [0,0,0,1]]  ;
   
 
    // Transformation Matrix
@@ -407,14 +406,14 @@ window.onload = init;
      }
    }
 
-   var armRotation = Midentity;
-   //armRotation = MatrixMultiply3D(roboArmTranslation1, armRotation);
-   armRotation = MatrixMultiply3D(roboArmRotationX, armRotation);
-   //armRotation = MatrixMultiply3D(roboArmTranslation2, armRotation);
+   var armRotation = MatrixMultiply3D(roboArmRotationX, Midentity);
 
    for (var i=0; i<transformedPoints.length; i++) {
       if (i>=40 && i < 56)
         transformedPoints[i] = VectorMultiply3D(armRotation, transformedPoints[i]);
+      else if (i>=72) {
+        transformedPoints[i] = VectorMultiply3D(boxTranslateY, transformedPoints[i]);
+      }
       else
         transformedPoints[i] = transformedPoints[i];
    }
@@ -456,8 +455,6 @@ window.onload = init;
    // Combine projection and transformation matrix
    var Mfinal = MatrixMultiply3D(Mproject, Mtransform);
 
-   //TODO: Use this as a baseline for how we do the transformations; just remember we only want the transformations happening
-   //To certain shapes
    var projectedPoints = [];
    for (var i=0; i<originalPoints.length; i++)
    {
