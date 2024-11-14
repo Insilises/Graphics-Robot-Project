@@ -305,14 +305,18 @@ window.onload = init;
    {
      degrees = 0;
    }
+   if (roboArmDegrees > 45) {
+    roboArmDegrees = 0;
+   }
    if (roboDegrees < -15)
    {
      roboDegrees = -14;
-     roboArmDegrees = 15;
      pickUpAnimation = false;
    }
+   
    var radians = degrees * (Math.PI / 180.0);
    var roboRadians = roboDegrees * (Math.PI / 180.0);
+   var roboArmRadians = roboDegrees * (Math.PI / 180.0);
   
 
    // Determine transformations
@@ -352,8 +356,8 @@ window.onload = init;
               [0, 0, 0, 1]];
 
     var roboTranslate = [  [1, 0, 0, 0],
-                        [0, 1, 0, roboOffset],
-                        [0, 0, 1, roboOffset],
+                        [0, 1, 0, 2*roboOffset],
+                        [0, 0, 1, 10*roboOffset],
                         [0, 0, 0, 1]  ];
 
     var translationTorso = [[1, 0, 0, -100],
@@ -367,15 +371,25 @@ window.onload = init;
                       [0, 0, 0, 1]  ];
 
   var roboArmRotationX = [  [1, 0, 0, 0],
-                      [0, Math.cos(roboRadians), -1.0*Math.sin(roboRadians), 0],
-                      [0, Math.sin(roboRadians), Math.cos(roboRadians), 0],
+                      [0, Math.cos(roboArmDegrees), -1.0*Math.sin(roboArmDegrees), 0],
+                      [0, Math.sin(roboArmDegrees), Math.cos(roboArmDegrees), 0],
                       [0, 0, 0, 1]  ];
+  
+  var roboArmTranslation1 = [[1, 0, 0, 0],
+                            [0, 1, 0, 100],
+                            [0, 0, 1, 150],
+                            [0, 0, 0, 1]  ];
+  
+   var roboArmTranslation2 = [[1, 0, 0, 0],
+                            [0, 1, 0, -100],
+                            [0, 0, 1, -150],
+                            [0, 0, 0, 1]  ];
+  
 
    // Transformation Matrix
    var Mtransform = Midentity;
    var McameraTransform = MrotationY; //Use this to move the camera
-   //TODO: I'm on track with these transformations, but it's a little off. :/
-   //TODO: Oh my god what have I done
+
    Mtransform = MatrixMultiply3D(t1, Mtransform);
    Mtransform = MatrixMultiply3D(roboRotationX, Mtransform)
    Mtransform = MatrixMultiply3D(t2, Mtransform);
@@ -390,9 +404,15 @@ window.onload = init;
       transformedPoints[i] = originalPoints[i];
      }
    }
+
+   var armRotation = Midentity;
+   //armRotation = MatrixMultiply3D(roboArmTranslation1, armRotation);
+   armRotation = MatrixMultiply3D(roboArmRotationX, armRotation);
+   //armRotation = MatrixMultiply3D(roboArmTranslation2, armRotation);
+
    for (var i=0; i<transformedPoints.length; i++) {
       if (i>=40 && i < 56)
-        transformedPoints[i] = VectorMultiply3D(roboRotationX, transformedPoints[i]);
+        transformedPoints[i] = VectorMultiply3D(armRotation, transformedPoints[i]);
       else
         transformedPoints[i] = transformedPoints[i];
    }
