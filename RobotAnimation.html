@@ -43,7 +43,7 @@ function keycheck(e) {
     solid = !solid;
   }
 
-  if (e.keyCode == "66") {
+  if (e.keyCode == "66" && !boxPickedUp) {
     pickUpAnimation = true;
   }
   
@@ -75,16 +75,17 @@ var boxPickedUp = false;
 
 // 3D World coordinate points
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
-var originalPoints = [  //Points for a cube that represents the robot's head
-                        //Each cube should follow this same order, just to keep things simple.
-                        [-150.0, -150.0, 250.0, 1.0], //bottom left, furthest away
-                        [150.0, -150.0, 250.0, 1.0], //Bottom right, furthest away
-                        [-150.0, 150.0, 250.0, 1.0], //Top left, furthest away
-                        [150.0, 150.0, 250.0, 1.0], //Top right, furthest away
-                        [-150.0, -150.0, -50.0, 1.0], //Bottom left closest
-                        [150.0, -150.0, -50.0, 1.0], //Bottom right closest
-                        [-150.0, 150.0, -50.0, 1.0], //Top left closest
-                        [150.0, 150.0, -50.0, 1.0], //Top right closest
+var originalPoints = [  
+                          //Each cube should follow this same order, just to keep things simple.
+                          //Points for a cube that represents the robot's head
+                        [-150.0, -150.0, 250.0, 1.0],
+                        [150.0, -150.0, 250.0, 1.0], 
+                        [-150.0, 150.0, 250.0, 1.0],
+                        [150.0, 150.0, 250.0, 1.0], 
+                        [-150.0, -150.0, -50.0, 1.0], 
+                        [150.0, -150.0, -50.0, 1.0], 
+                        [-150.0, 150.0, -50.0, 1.0],
+                        [150.0, 150.0, -50.0, 1.0],
 
                         //Points for a rectangular prism that represents the robot's torso
                         [-100.0, -350.0, 200.0, 1.0],
@@ -264,23 +265,6 @@ var zBufferColor = [];
 
 window.onload = init;
 
-/*
-  Code for the 360 rotation
-   if (!paused)
-   {
-     offset+=2;
-     degrees+=2;
-   }
-   if (offset > 500)
-   {
-     offset = 0;
-   }
-   if (degrees > 360)
-   {
-     degrees = 0;
-   }
-   var radians = degrees * (Math.PI / 180.0);
-   */
 
    
    
@@ -310,15 +294,17 @@ window.onload = init;
       else if (dropAnimation) {
         roboArmDegrees-=4;
         roboDegrees+=2;
-        offset-=2;
+        offset+=2;
         if (roboArmDegrees < 180) {
           roboArmDegrees = 0;
           dropAnimation = false;
           boxPickedUp = false;
+          offset = 0;
         }
         if (roboDegrees < -15)
         {
           roboDegrees = 0;
+          offset = 0;
           dropAnimation = false;
           boxPickedUp = false;
         }
@@ -435,6 +421,9 @@ window.onload = init;
    }
 
    var armRotation = MatrixMultiply3D(roboArmRotationX, Midentity);
+   if (dropAnimation) {
+    boxTranslateY = matrixTranspose(boxTranslateY);
+   }
 
    for (var i=0; i<transformedPoints.length; i++) {
       if (i>=40 && i < 56)
