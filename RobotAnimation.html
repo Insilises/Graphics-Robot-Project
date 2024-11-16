@@ -51,21 +51,21 @@ function keycheck(e) {
   }
 
   //When w key is pressed, move the camera up
-  if (e.keyCode == "87") {
+  if (e.keyCode == "87" && !camera360) {
     cameraOffsetY = cameraOffsetY + 10;
   }
 
   //When the a key is pressed, move the camera left
-  if (e.keyCode == "65") {
+  if (e.keyCode == "65" && !camera360) {
     cameraOffsetZ = cameraOffsetZ - 10;
   }
 
   //When the s key is pressed, move the camera down
-  if (e.keyCode == "83") {
+  if (e.keyCode == "83" && !camera360) {
     cameraOffsetY = cameraOffsetY - 10;
   }  
   //When the d key is pressed, move the camera right
-  if (e.keyCode == "68") {
+  if (e.keyCode == "68" && !camera360) {
     cameraOffsetZ = cameraOffsetZ + 10;
   }
 
@@ -275,13 +275,13 @@ var faces = [ //0-7; Represents the head
             [49, 48, 52, 53],  
             
             //56-63; represents the left leg
-            [60, 57, 59, 58],
+            [56, 57, 59, 58],
             [61, 60, 62, 63],
             [60, 56, 58, 62],
             [57, 61, 63, 59],
             [58, 59, 63, 62],
             [57, 56, 60, 61],
-          
+            
             //64-71; represents the right leg
             [64, 65, 67, 66],
             [69, 68, 70, 71],
@@ -582,6 +582,11 @@ window.onload = init;
    requestAnimFrame(render);
 }
 
+//This should go in Matrices.js probably, but I really want to make sure it's here.
+/**Computes the transpose of a 4x4 matrix
+ * @param matrix A 4x4 matrix
+ * @returns matrix the transpose of the original matrix
+ */
 function matrixTranspose(matrix) {
   var matrixCopy = matrix;
   for (i=0; i<4; i++) {
