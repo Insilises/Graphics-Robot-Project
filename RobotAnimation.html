@@ -33,16 +33,36 @@ void main()
 window.addEventListener("keydown", keycheck, false);
 
 function keycheck(e) {
-  // When space is pressed, camera moves at 360 degrees repeatedly until space is pressed again
+  // When space is pressed, camera moves at 360 degrees until space is pressed again
   if (e.keyCode == "32") {
     camera360 = !camera360;
   }
 
-  // Toggle solid/opaque when the letter s is pressed
-  if (e.keyCode == "83") {
+  // Toggle solid/opaque when the letter t is pressed
+  if (e.keyCode == "84") {
     solid = !solid;
   }
 
+  //When w key is pressed, move the camera up
+  if (e.keyCode == "87") {
+    cameraOffsetY = cameraOffsetY + 10;
+  }
+
+  //When the a key is pressed, move the camera left
+  if (e.keyCode == "65") {
+    cameraOffsetZ = cameraOffsetZ - 10;
+  }
+
+  //When the s key is pressed, move the camera down
+  if (e.keyCode == "83") {
+    cameraOffsetY = cameraOffsetY - 10;
+  }  
+  //When the d key is pressed, move the camera right
+  if (e.keyCode == "68") {
+    cameraOffsetZ = cameraOffsetZ + 10;
+  }
+
+  //If 
   if (e.keyCode == "66" && !boxPickedUp) {
     pickUpAnimation = true;
   }
@@ -59,6 +79,9 @@ var canvas;
 var gl;
 var colorUniformLocation;
 
+var cameraOffsetX  = 0;
+var cameraOffsetY = 0;
+var cameraOffsetZ = 0;
 var offset = 0;
 var degrees = 0;
 var roboDegrees = 0;
@@ -402,6 +425,12 @@ window.onload = init;
                           [0,1,0, 10* offset],
                           [0,0,1,0],
                           [0,0,0,1]]  ;
+
+    var cameraTranslate = [[1, 0, 0, cameraOffsetX],
+                            [0, 1, 0, cameraOffsetY],
+                            [0, 0, 1, cameraOffsetZ],
+                            [0, 0, 0, 1]];
+
   
 
    // Transformation Matrix
@@ -441,7 +470,12 @@ window.onload = init;
 
    // View-plane normal vector, N, is P0 - Pref
    var p0 = [-1000, -100.0, 500.0, 1.0];
-   p0 = VectorMultiply3D(McameraTransform, p0);
+   if (camera360) {
+    p0 = VectorMultiply3D(McameraTransform, p0);
+   }
+   else {
+    p0 = VectorMultiply3D(cameraTranslate, p0);
+   }
    var pref = [0.0, 0.0, 0.0, 1.0];
 
    var pview = [100.0, 100.0, -400.0, 1.0];
