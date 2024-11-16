@@ -33,9 +33,9 @@ void main()
 window.addEventListener("keydown", keycheck, false);
 
 function keycheck(e) {
-  // Toggle pause/unpause when the letter p is pressed
-  if (e.keyCode == "80") {
-    paused = !paused;
+  // When space is pressed, camera moves at 360 degrees repeatedly until space is pressed again
+  if (e.keyCode == "32") {
+    camera360 = !camera360;
   }
 
   // Toggle solid/opaque when the letter s is pressed
@@ -72,6 +72,8 @@ var useParallelProjection = true;
 var pickUpAnimation = false; //TODO: Set to false when done testing
 var dropAnimation = false;
 var boxPickedUp = false;
+
+var camera360 = false;
 
 // 3D World coordinate points
 /*Represents the robot's torso, head and face. The animation should have these parts move the same as the robot bends over*/
@@ -271,9 +273,10 @@ window.onload = init;
    //Once Vertices is populated with the actual lines, we can use triangle fan to draw using the points we have. We don't
    //have to worry about fill algorithms.
    function render() {
-   if (!paused)
+   if (camera360)
    {
      degrees-=2;
+   }
      if (pickUpAnimation) {
         roboArmDegrees+=4;
         roboDegrees-=2;
@@ -290,25 +293,25 @@ window.onload = init;
           pickUpAnimation = false;
           boxPickedUp = true;
         }
+    }
+    else if (dropAnimation) {
+      roboArmDegrees-=4;
+      roboDegrees+=2;
+      offset+=2;
+      if (roboArmDegrees < 180) {
+        roboArmDegrees = 0;
+        dropAnimation = false;
+        boxPickedUp = false;
+        offset = 0;
       }
-      else if (dropAnimation) {
-        roboArmDegrees-=4;
-        roboDegrees+=2;
-        offset+=2;
-        if (roboArmDegrees < 180) {
-          roboArmDegrees = 0;
-          dropAnimation = false;
-          boxPickedUp = false;
-          offset = 0;
-        }
-        if (roboDegrees < -15)
-        {
-          roboDegrees = 0;
-          offset = 0;
-          dropAnimation = false;
-          boxPickedUp = false;
-        }
+      if (roboDegrees < -15)
+      {
+        roboDegrees = 0;
+        offset = 0;
+        dropAnimation = false;
+        boxPickedUp = false;
       }
+    }
 
    if (roboOffset < -100 || roboOffset > 100) {
     roboOffset = 0;
@@ -322,7 +325,7 @@ window.onload = init;
    {
      degrees = 0;
    }
-  }
+  
    
    var radians = degrees * (Math.PI / 180.0);
    var roboRadians = roboDegrees * (Math.PI / 180.0);
